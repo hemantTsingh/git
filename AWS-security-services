@@ -1,0 +1,284 @@
+🚨 AWS Security & Threat Detection Stack
+
+Think: "Detect bad things BEFORE and AFTER they happen"
+
+🔥 AWS GuardDuty
+
+✔ Continuous threat detection
+✔ Detects:
+
+Compromised EC2, IAM keys usage
+
+Crypto-mining behavior
+
+Suspicious API calls
+
+Malicious IP contacts
+
+S3 data exfiltration attempts
+
+🧠 Use cases to remember:
+➡ “User logged in from an unusual country”
+➡ “EC2 instance making outbound DNS calls to known malicious domains”
+➡ “S3 bucket data being accessed unusually”
+
+👉 GuardDuty is detection only (no auto remediation)
+
+🔍 AWS Inspector
+
+Think: "Security vulnerability scan"
+
+✔ Detects:
+
+OS-level vulnerabilities
+
+Unpatched CVEs
+
+Open ports
+
+Weak configurations
+
+✔ Works on:
+
+EC2
+
+Lambda
+
+ECR images
+
+🧠 Remember:
+
+Inspector = vulnerability scan
+
+GuardDuty = threat detection & anomaly monitoring
+
+🛑 AWS Security Hub
+
+Think: Central dashboard of your security posture
+
+✔ Aggregates:
+
+GuardDuty alerts
+
+Inspector findings
+
+IAM Access Analyzer alerts
+
+AWS Config compliance violations
+
+✔ Gives security score (CIS, NIST frameworks)
+
+🧠 Handy when asked:
+
+"Where will I get centralized risk visibility?"
+
+🔐 AWS IAM Access Analyzer
+
+Detects:
+✔ Publicly accessible S3
+✔ Cross-account IAM trust
+✔ Public KMS keys
+✔ Over-permissive IAM roles
+
+💭 Example:
+
+S3 bucket accidentally exposed publicly → Analyzer warns you
+
+🚨 Amazon Macie
+
+PII identification in S3
+✔ Emails, PAN/Aadhaar formats, Names, Credit card info
+
+📌 Used in Banking, Healthcare
+
+🧠 Monitoring & Logging Stack (Your MUST-KNOW)
+📊 CloudWatch
+
+Think: metrics + alarms + dashboards
+
+What it collects:
+
+✔ EC2 CPU, memory (agent-based), network
+✔ RDS, ELB, Lambda metrics
+✔ Custom application logs
+✔ Container logs
+
+Components to recall:
+
+✔ CloudWatch Metrics
+✔ CloudWatch Alarms
+✔ CloudWatch Logs
+✔ Log Insights
+
+🧠 Interview highlight:
+🗣 "To restart pods automatically when CPU increases → Use CloudWatch Alarm → SNS → Lambda → Kubectl rollout restart"
+
+📜 CloudTrail
+
+Tracks:
+✔ Who did What, When, From Where in AWS
+
+Examples:
+🔸 Deleted EC2 → logged
+🔸 Created IAM user → logged
+🔸 Modified security group rule → logged
+
+Used for:
+✔ Auditing
+✔ Security forensics
+✔ Change tracking
+
+CloudWatch vs CloudTrail
+Feature	CloudWatch	CloudTrail
+Use Case	Metrics/Logs	API activity
+Example	CPU = 80%	IAM user made SSH key
+⚙️ Configuration & Governance Stack
+🏛 AWS Config
+
+Think: AWS State Tracking + Compliance
+
+Tracks:
+✔ Resource configuration changes over time
+✔ If configuration violates policies
+
+Example:
+✔ A rule → "S3 bucket must not be public"
+→ Config checks continuously
+
+🧠 Powerful Interview Answer:
+
+“AWS Config continuously checks real-time resource compliance while CloudTrail records who made the change.”
+
+🧾 AWS Audit Manager
+
+Used for compliance documentation
+✔ SOX
+✔ HIPAA
+✔ PCI DSS
+
+Not for beginners, but mention when interviewer goes deep.
+
+🚧 Operational Security Components
+🔐 AWS KMS
+
+✔ Encrypts EBS, S3, RDS, Kinesis, Lambda
+
+Key terms:
+
+CMK
+
+Envelope encryption
+
+Key rotation
+
+🔑 AWS Secrets Manager
+
+✔ Stores DB passwords, API keys
+✔ Rotates secrets automatically
+
+Comparison:
+
+Parameter Store = basic
+
+Secrets Manager = auto-rotation
+
+📡 Networking Security
+🔥 AWS Firewall Manager
+
+Central management for AWS WAF, SG rules
+
+AWS WAF
+
+Blocks:
+
+SQL injection
+
+Cross-site scripting (XSS)
+
+Apply on:
+✔ CloudFront
+✔ API Gateway
+✔ ALB
+
+📈 AWS Observability for Kubernetes
+Use in EKS cluster:
+
+✔ CloudWatch Container Insights
+✔ FluentBit → CloudWatch Logs
+✔ X-Ray for request tracing
+✔ CloudTrail for EKS API activity
+
+🧠 Data Processing, ETL, Analytics Related Services
+
+To clear confusion between Glue, EMR, Athena etc.
+
+🦋 AWS Glue (ETL)
+
+Pipeline:
+Source → Clean → Transform → Store
+
+Example:
+S3 raw logs → Glue → Parquet → Athena Query
+
+❓ AWS Athena
+
+Query S3 directly using SQL
+
+🧠 Pairing:
+Glue catalogs tables → Athena queries them
+
+💡 AWS Lake Formation
+
+Security for Data Lakes
+
+Controls:
+✔ table-level access
+✔ column-level access
+✔ masked access
+
+For enterprise-level governance
+
+🧠 MASTER MEMORY MAP (1-MINUTE RECALL)
+Threat Detection
+
+GuardDuty → anomalies, malicious activity
+
+Inspector → vulnerabilities & CVEs
+
+IAM Analyzer → overly exposed access
+
+Compliance & Governance
+
+Security Hub → central dashboard
+
+AWS Config → continuous checks
+
+Logging & Monitoring
+
+CloudWatch → logs, metrics, alarms
+
+CloudTrail → API operations history
+
+Identity & Secrets
+
+KMS → encryption and key lifecycle
+
+Secrets Manager → rotate credentials
+
+Parameter Store → cheaper alternative
+
+Data Governance & ETL
+
+Glue → ETL
+
+Athena → SQL on S3
+
+Lake Formation → access control
+
+🎯 Best Interview Answers (copy style)
+
+For real-time monitoring, I'd use CloudWatch for metrics and logs, CloudTrail to track user activity, and AWS Config to ensure that infrastructure remains compliant. If anomalies occur—like unusual access patterns—GuardDuty detects threats and Security Hub aggregates findings across services."
+
+Or
+
+“For vulnerability detection I'd use AWS Inspector, and for access exposure IAM Access Analyzer helps identify public or cross-account access.”
