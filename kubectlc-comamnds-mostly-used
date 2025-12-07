@@ -1,0 +1,253 @@
+Phase-1: Cluster + Context Validation Commands
+✔ Set current context to a desired namespace (prevents accidental changes)
+kubectl config set-context --current --namespace cloudchamp
+
+
+🎯 Most ignored command — avoids applying objects to wrong namespace.
+
+✔ See which cluster you're actually connected to
+kubectl config current-context
+
+✔ View kubeconfig entries
+kubectl config view
+
+✔ Check cluster reachability
+kubectl cluster-info
+
+
+If API Server unreachable → cluster networking issue.
+
+🚨 Critical Real-World Trick
+If authentication issues:
+kubectl get --raw='/readyz?verbose'
+kubectl get --raw='/livez?verbose'
+
+
+This checks APIServer readiness and liveness from CLI.
+
+🔥 Phase-2: Deployment & Rollout Commands
+✔ Create namespace
+kubectl create ns cloudchamp
+
+✔ Apply deployment configuration
+kubectl apply -f api-deployment.yaml
+kubectl apply -f frontend-deployment.yaml
+kubectl apply -f mongo-statefulset.yaml
+
+🚨 Deployment Rollout Debugging (gold commands)
+Check rollout status:
+kubectl rollout status deployment api
+kubectl rollout status deployment frontend
+
+View rollout history:
+kubectl rollout history deployment api
+
+Roll back:
+kubectl rollout undo deployment api
+
+
+⭐ Life saver when a new deployment breaks the app.
+
+🔥 Phase-3: Pod-Level Debugging (Most Useful Area)
+✔ Basic pod view
+kubectl get pods -o wide
+
+
+Provides:
+
+✔ Node assignment
+✔ Pod IP
+
+✔ Debug inside a running pod
+kubectl exec -it <pod-name> -- bash
+
+🚨 Debug WITHOUT exec access (key ignored cmd)
+kubectl debug -it <pod-name> --image=ubuntu
+
+
+⭐ Useful for alpine containers that lack debugging tools.
+
+Example usage inside debug pod:
+
+apt update && apt install curl
+
+✔ Restart a deployment (not delete pods)
+kubectl rollout restart deployment api
+
+
+Most juniors mistakenly use:
+❌ kubectl delete pod
+
+Which causes new pod activation ambiguity.
+
+✔ Describe pod to view failure reason
+kubectl describe pod <pod>
+
+
+This alone solves 70% deployment issues.
+
+You will see:
+
+✔ CrashLoopBackoff reason
+✔ Image pull failure
+✔ Node scheduling errors
+✔ Volume mounting errors
+
+🔥 Phase-4: Services & Networking Diagnostics
+See how service maps to pods
+kubectl get endpoints api
+
+
+🔥 Critical in verifying service routing:
+If endpoints empty → backing pods missing.
+
+Validate DNS resolution through cluster
+kubectl run utils --rm -it --image=busybox -- nslookup api
+
+
+Or from your project:
+
+kubectl run --rm utils -it --image=praqma/network-multitool -- bash
+
+
+Inside:
+
+curl http://api:8080/ok
+
+
+This checks:
+
+✔ DNS
+✔ service routing
+✔ connectivity
+
+View loadbalancer status
+kubectl get svc frontend -o yaml
+
+
+Check fields:
+
+status.loadBalancer.ingress
+spec.externalTrafficPolicy
+spec.type
+
+🔥 Phase-5: Storage & PVC Debugging Commands
+List PVCs
+kubectl get pvc -A
+
+See what's happening inside PVC binding
+kubectl describe pvc mongo-pvc
+
+
+You will see:
+
+✔ Storage class
+✔ Bound volume name
+✔ Error messages
+
+If PV stuck pending → debug PV
+kubectl describe pv
+
+Find which pod is using which PVC
+kubectl get pod -o custom-columns=NAME:.metadata.name,VOLUME:.spec.volumes[*].persistentVolumeClaim.claimName
+
+
+⭐ Helps identify wrong bindings.
+
+🔥 Phase-6: Logs & Monitoring Commands
+View logs
+kubectl logs <pod>
+
+Live logs
+kubectl logs -f <pod> --tail=100
+
+Get logs for previous crash
+kubectl logs <pod> --previous
+
+
+⭐ Extremely useful for CrashLoopBackOff cases.
+
+🔥 Phase-7: Node Interaction
+Get node resource allocation
+kubectl describe node <node>
+
+
+Shows:
+
+✔ Disk pressure
+✔ Memory pressure
+✔ Pod count reached limit
+
+Node-wise distribution of pods
+kubectl get pods -o wide | awk '{print $1,$7}'
+
+
+(7th column is node)
+
+🔥 Phase-8: Events & Last State Info (Rare but Gold)
+View last errors seen by Kubernetes
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+
+This often reveals:
+
+✔ OOM kills
+✔ ImagePullBackoff
+✔ NodeNotReady
+
+💎 Hand-picked Critical Commands Most Engineers Forget
+👉 Check which CNI you are using
+kubectl get pods -n kube-system -l k8s-app=kube-proxy
+kubectl get pods -n kube-system -l k8s-app=calico-node
+kubectl get pods -n kube-system -l app=flannel
+
+
+Useful when networking breaks.
+
+👉 Describe service endpoints
+kubectl describe svc api
+
+👉 Get pod YAML
+kubectl get pod <pod> -o yaml
+
+
+Use when recreating broken deployments.
+
+🚀 Bonus: Debug complete chain
+
+If frontend showing blank page:
+
+kubectl get svc frontend
+kubectl get endpoints frontend
+kubectl exec -it api-pod -- curl http://mongo-0.mongo:27017
+kubectl logs api-pod
+kubectl exec -it mongo-0 -- mongo langdb --eval "db.languages.find()"
+
+
+Checks path:
+
+Frontend → API → DB
+
+🎯 Summary | Deployment MUST KNOW commands
+Setup
+kubectl config set-context --current --namespace cloudchamp
+
+Deploy
+kubectl apply -f <files>
+kubectl rollout restart deployment <name>
+
+Debug deployment
+kubectl rollout history deployment <name>
+kubectl logs --previous <pod>
+kubectl describe pod <pod>
+
+Debug services
+kubectl get endpoints <service>
+kubectl describe svc <service>
+
+Debug storage
+kubectl describe pvc
+kubectl describe pv
+
+Debug connectivity
+kubectl run utils --rm -it --image=praqma/network-multitool
