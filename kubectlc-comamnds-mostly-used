@@ -256,3 +256,398 @@ kubectl describe pv
 
 Debug connectivity
 kubectl run utils --rm -it --image=praqma/network-multitool
+
+
+
+
+
+
+
+
+Deployment
+├─ apiVersion: apps/v1
+├─ kind: Deployment
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  ├─ labels
+│  └─ annotations
+└─ spec
+   ├─ replicas
+   ├─ revisionHistoryLimit
+   ├─ strategy
+   │  ├─ type
+   │  └─ rollingUpdate
+   │     ├─ maxSurge
+   │     └─ maxUnavailable
+   ├─ selector
+   │  ├─ matchLabels
+   │  └─ matchExpressions
+   └─ template
+      ├─ metadata
+      │  ├─ labels
+      │  └─ annotations
+      └─ spec
+         ├─ serviceAccountName
+         ├─ automountServiceAccountToken
+         ├─ restartPolicy
+         ├─ terminationGracePeriodSeconds
+         ├─ nodeSelector
+         ├─ affinity
+         │  ├─ nodeAffinity
+         │  ├─ podAffinity
+         │  └─ podAntiAffinity
+         ├─ tolerations
+         ├─ securityContext
+         │  ├─ runAsUser
+         │  ├─ runAsGroup
+         │  ├─ fsGroup
+         ├─ initContainers
+         │  └─ name
+         │     ├─ image
+         │     ├─ command
+         │     └─ volumeMounts
+         ├─ containers
+         │  └─ name
+         │     ├─ image
+         │     ├─ imagePullPolicy
+         │     ├─ command
+         │     ├─ args
+         │     ├─ ports
+         │     │  ├─ containerPort
+         │     │  ├─ name
+         │     │  └─ protocol
+         │     ├─ env
+         │     │  ├─ name
+         │     │  ├─ value
+         │     │  └─ valueFrom
+         │     ├─ envFrom
+         │     │  ├─ configMapRef
+         │     │  └─ secretRef
+         │     ├─ resources
+         │     │  ├─ requests
+         │     │  │  ├─ cpu
+         │     │  │  └─ memory
+         │     │  └─ limits
+         │     │     ├─ cpu
+         │     │     └─ memory
+         │     ├─ livenessProbe
+         │     ├─ readinessProbe
+         │     ├─ startupProbe
+         │     ├─ lifecycle
+         │     │  ├─ postStart
+         │     │  └─ preStop
+         │     ├─ volumeMounts
+         │     │  ├─ name
+         │     │  ├─ mountPath
+         │     │  ├─ subPath
+         │     │  └─ readOnly
+         │     └─ securityContext
+         │        ├─ allowPrivilegeEscalation
+         │        ├─ readOnlyRootFilesystem
+         │        └─ capabilities
+         │           └─ drop
+         ├─ volumes
+         │  ├─ name
+         │  ├─ emptyDir
+         │  ├─ configMap
+         │  ├─ secret
+         │  ├─ persistentVolumeClaim
+         │  └─ hostPath
+         ├─ imagePullSecrets
+         ├─ dnsPolicy
+         └─ hostAliases
+
+
+
+
+Service
+├─ apiVersion: v1
+├─ kind: Service
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  ├─ labels
+│  └─ annotations
+└─ spec
+   ├─ type
+   │  ├─ ClusterIP
+   │  ├─ NodePort
+   │  ├─ LoadBalancer
+   │  └─ ExternalName
+   ├─ selector
+   ├─ ports
+   │  └─ name
+   │     ├─ protocol
+   │     ├─ port
+   │     ├─ targetPort
+   │     └─ nodePort
+   ├─ clusterIP
+   ├─ clusterIPs
+   ├─ ipFamilies
+   ├─ ipFamilyPolicy
+   ├─ sessionAffinity
+   │  └─ ClientIP
+   ├─ sessionAffinityConfig
+   │  └─ clientIP
+   │     └─ timeoutSeconds
+   ├─ internalTrafficPolicy
+   ├─ externalTrafficPolicy
+   ├─ loadBalancerIP
+   ├─ loadBalancerSourceRanges
+   ├─ loadBalancerClass
+   ├─ externalIPs
+   ├─ publishNotReadyAddresses
+   ├─ allocateLoadBalancerNodePorts
+   ├─ healthCheckNodePort
+
+
+
+
+
+
+
+ConfigMap
+├─ apiVersion: v1
+├─ kind: ConfigMap
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  └─ labels
+└─ data
+
+
+
+Secret
+├─ apiVersion: v1
+├─ kind: Secret
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  └─ labels
+├─ type
+└─ data
+
+
+
+
+
+Pod
+├─ apiVersion: v1
+├─ kind: Pod
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  ├─ labels
+│  └─ annotations
+└─ spec
+   ├─ restartPolicy
+   ├─ serviceAccountName
+   ├─ nodeSelector
+   ├─ affinity
+   ├─ tolerations
+   ├─ securityContext
+   ├─ initContainers
+   ├─ containers
+   ├─ volumes
+   ├─ imagePullSecrets
+   ├─ terminationGracePeriodSeconds
+   ├─ dnsPolicy
+   └─ hostAliases
+
+
+
+
+
+ReplicaSet
+├─ apiVersion: apps/v1
+├─ kind: ReplicaSet
+├─ metadata
+└─ spec
+   ├─ replicas
+   ├─ selector
+   └─ template
+
+
+
+
+StatefulSet
+├─ apiVersion: apps/v1
+├─ kind: StatefulSet
+├─ metadata
+└─ spec
+   ├─ serviceName
+   ├─ replicas
+   ├─ selector
+   ├─ updateStrategy
+   ├─ podManagementPolicy
+   ├─ revisionHistoryLimit
+   ├─ template
+   └─ volumeClaimTemplates
+
+
+DaemonSet
+├─ apiVersion: apps/v1
+├─ kind: DaemonSet
+├─ metadata
+└─ spec
+   ├─ selector
+   ├─ updateStrategy
+   ├─ revisionHistoryLimit
+   └─ template
+
+Job
+├─ apiVersion: batch/v1
+├─ kind: Job
+├─ metadata
+└─ spec
+   ├─ completions
+   ├─ parallelism
+   ├─ backoffLimit
+   ├─ activeDeadlineSeconds
+   ├─ ttlSecondsAfterFinished
+   └─ template
+
+
+
+
+CronJob
+├─ apiVersion: batch/v1
+├─ kind: CronJob
+├─ metadata
+└─ spec
+   ├─ schedule
+   ├─ timeZone
+   ├─ concurrencyPolicy
+   ├─ startingDeadlineSeconds
+   ├─ suspend
+   ├─ successfulJobsHistoryLimit
+   ├─ failedJobsHistoryLimit
+   └─ jobTemplate
+      └─ spec
+
+
+
+
+Ingress
+├─ apiVersion: networking.k8s.io/v1
+├─ kind: Ingress
+├─ metadata
+│  ├─ name
+│  ├─ namespace
+│  ├─ labels
+│  └─ annotations
+└─ spec
+   ├─ ingressClassName
+   ├─ defaultBackend
+   ├─ rules
+   │  └─ host
+   │     └─ http
+   │        └─ paths
+   │           ├─ path
+   │           ├─ pathType
+   │           └─ backend
+   └─ tls
+
+
+
+HorizontalPodAutoscaler
+├─ apiVersion: autoscaling/v2
+├─ kind: HorizontalPodAutoscaler
+├─ metadata
+└─ spec
+   ├─ scaleTargetRef
+   ├─ minReplicas
+   ├─ maxReplicas
+   └─ metrics
+
+
+
+
+PodDisruptionBudget
+├─ apiVersion: policy/v1
+├─ kind: PodDisruptionBudget
+├─ metadata
+└─ spec
+   ├─ minAvailable
+   ├─ maxUnavailable
+   └─ selector
+
+
+
+ServiceAccount
+├─ apiVersion: v1
+├─ kind: ServiceAccount
+├─ metadata
+└─ secrets
+
+
+Role
+├─ apiVersion: rbac.authorization.k8s.io/v1
+├─ kind: Role
+├─ metadata
+└─ rules
+
+
+RoleBinding
+├─ apiVersion: rbac.authorization.k8s.io/v1
+├─ kind: RoleBinding
+├─ metadata
+└─ subjects
+└─ roleRef
+
+
+ClusterRole
+├─ apiVersion: rbac.authorization.k8s.io/v1
+├─ kind: ClusterRole
+├─ metadata
+└─ rules
+
+
+
+ClusterRoleBinding
+├─ apiVersion: rbac.authorization.k8s.io/v1
+├─ kind: ClusterRoleBinding
+├─ metadata
+└─ subjects
+└─ roleRef
+
+
+
+PersistentVolume
+├─ apiVersion: v1
+├─ kind: PersistentVolume
+├─ metadata
+└─ spec
+   ├─ capacity
+   ├─ accessModes
+   ├─ persistentVolumeReclaimPolicy
+   ├─ storageClassName
+   ├─ volumeMode
+   └─ hostPath | nfs | iscsi | awsElasticBlockStore
+
+
+PersistentVolumeClaim
+├─ apiVersion: v1
+├─ kind: PersistentVolumeClaim
+├─ metadata
+└─ spec
+   ├─ accessModes
+   ├─ resources
+   ├─ storageClassName
+   └─ volumeMode
+
+
+StorageClass
+├─ apiVersion: storage.k8s.io/v1
+├─ kind: StorageClass
+├─ metadata
+└─ provisioner
+└─ parameters
+└─ reclaimPolicy
+└─ volumeBindingMode
+└─ allowVolumeExpansion
+
+
+
+
