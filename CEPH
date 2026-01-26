@@ -1,0 +1,332 @@
+# Ceph Single‑Page Ops Cheat Sheet
+
+> Copy–paste friendly. Each command includes **why it exists**.
+
+---
+
+## 1️⃣ Safe Removal of a Node (example: node1)
+
+### Check cluster health (must NOT be HEALTH_ERR)
+
+```bash
+ceph -s                      # Overall cluster status
+ceph health detail           # Detailed health issues
+```
+
+### Identify OSDs on node1
+
+```bash
+ceph osd tree                # Shows OSD → host mapping
+```
+
+### Mark OSDs OUT (triggers data rebalance)
+
+```bash
+ceph osd out osd.0           # Stop placing new data on osd.0
+ceph osd out osd.1           # Data is replicated elsewhere
+```
+
+### Monitor rebalance and PG state
+
+```bash
+ceph -s                      # Watch recovery/backfill
+ceph pg stat                 # PG states (wait for active+clean)
+```
+
+### Remove OSD daemons (after PGs are clean)
+
+```bash
+ceph orch daemon rm osd.0    # Remove OSD container & config
+ceph orch daemon rm osd.1
+```
+
+### Remove MON (ensure quorum remains ≥ 3)
+
+```bash
+ceph quorum_status           # Check MON quorum
+ceph orch daemon rm mon.node1
+```
+
+### Remove MGR
+
+```bash
+ceph orch daemon rm mgr.node1
+```
+
+### Remove host from cluster
+
+```bash
+ceph orch host rm node1      # Final cleanup
+```
+
+---
+
+## 2️⃣ Placement Groups (PGs) – Configuration
+
+### View PG usage and states
+
+```bash
+ceph pg stat                 # High-level PG state summary
+ceph pg dump | head          # Low-level PG info (advanced)
+```
+
+### PG sizing rule of thumb
+
+```text
+~100–200 PGs per OSD
+```
+
+### Example: Set PGs for a pool (increase gradually)
+
+```bash
+ceph osd pool set rbd-pool pg_num 256     # Total PGs in pool
+ceph osd pool set rbd-pool pgp_num 256    # PGs used for placement
+```
+
+---
+
+## 3️⃣ Erasure Coding (EC)
+
+### Create an EC profile (k=data, m=parity)
+
+```bash
+ceph osd erasure-code-profile set ec-profile \
+  k=4 m=2 crush-failure-domain=host        # Can lose 2 hosts
+```
+
+### Create an EC pool
+
+```bash
+ceph osd pool create ec-pool 128 128 erasure ec-profile
+```
+
+> ⚠️ Do NOT use EC for RBD / VM workloads (latency & RMW penalty).
+
+---
+
+## 4️⃣ CRUSH Rules & Failure Domains
+
+### View CRUSH hierarchy
+
+```bash
+ceph osd tree                # root → rack → host → osd
+```
+
+### Create a replicated CRUSH rule (failure domain = host)
+
+```bash
+ceph osd crush rule create-replicated rbd-rule default host
+```
+
+### Apply CRUSH rule to a pool
+
+```bash
+ceph osd pool set rbd-pool crush_rule rbd-rule
+```
+
+---
+
+## 5️⃣ Reweighting & Balancing
+
+### Manually reduce data on a specific OSD
+
+```bash
+ceph osd reweight osd.3 0.8  # Temporarily move data away
+```
+
+### Automatically balance based on utilization
+
+```bash
+ceph osd reweight-by-utilization   # Safe for mixed disks
+```
+
+### View OSD capacity and usage
+
+```bash
+ceph osd df                 # Per-OSD space usage
+```
+
+---
+
+## 6️⃣ Monitoring & Orchestration (cephadm)
+
+```bash
+ceph orch ps                # All running Ceph daemons
+ceph orch host ls            # Hosts known to Ceph
+```
+
+---
+
+## 7️⃣ Emergency / Must‑Know Commands
+
+```bash
+ceph -s                      # First command in any incident
+ceph health detail           # Why cluster is unhappy
+ceph osd stat                # OSD up/in counts
+```
+
+---
+
+### Production Wisdom (Read Once)
+
+* Never remove a node before PGs are **active+clean**
+* RBD → Replication, RGW/Backup → Erasure Coding
+* Wrong PG count causes more outages than disk failures
+* CRUSH failure-domain should almost always be **host**
+
+---
+
+✔ This page is safe to keep as a runbook / interview sheet.
+
+
+
+
+
+1️⃣ MON (Monitor)
+What MON does
+
+👉 Maintains cluster state & consensus
+
+MON stores:
+
+Cluster map
+
+OSD map
+
+MON map
+
+CRUSH map
+
+Authentication info (cephx)
+
+Key properties
+
+Uses Paxos (consensus algorithm)
+
+Needs quorum (odd number)
+
+Why MON is critical
+
+Without MON quorum → cluster freezes
+
+No IO decisions can be made
+
+Commands related to MON
+ceph quorum_status        # Who is in quorum
+ceph mon dump             # Monitor map
+
+Failure scenario
+
+Lose 1 MON out of 5 → OK
+
+Lose quorum → ❌ cluster stuck
+
+2️⃣ MGR (Manager)
+What MGR does
+
+👉 Real-time monitoring, metrics, and control logic
+
+MGR handles:
+
+Dashboard
+
+Prometheus exporter
+
+Orchestration (cephadm)
+
+Balancer
+
+Telemetry
+
+PG autoscaler
+
+Key properties
+
+Active + Standby
+
+Stateless (can fail safely)
+
+Why MGR exists
+
+Before MGR:
+
+MONs were overloaded
+Now:
+
+MON = critical state
+
+MGR = operational intelligence
+
+Commands related to MGR
+ceph mgr services        # Dashboard, prometheus URLs
+ceph mgr dump            # Active/standby mgr
+
+Failure scenario
+
+Active MGR dies → standby takes over
+
+Cluster IO continues normally
+
+3️⃣ OSD (Object Storage Daemon)
+What OSD does
+
+👉 Stores actual data + handles replication
+
+OSD responsibilities:
+
+Store objects on disk (NVMe/HDD)
+
+Replication
+
+Recovery
+
+Backfill
+
+Scrubbing
+
+Heartbeats
+
+Key properties
+
+One OSD ≈ one disk
+
+Uses BlueStore backend
+
+Talks directly to other OSDs
+
+Why OSD is performance-critical
+
+Latency
+
+Throughput
+
+Data durability
+
+Commands related to OSD
+ceph osd tree            # OSD layout
+ceph osd df              # Disk usage
+
+Failure scenario
+
+One OSD dies → data re-replicated
+
+Too many OSDs down → data unavailable
+
+One Table That Locks It In Your Brain
+Component	Purpose	Stores Data?	HA Model	If it fails
+MON	Cluster truth	❌	Quorum	Cluster stuck
+MGR	Metrics & control	❌	Active/Standby	Transparent
+OSD	Data storage	✅	Replication	Rebuild
+One-Line Memory Trick (Interview Gold)
+
+MON decides what the cluster looks like
+MGR decides how the cluster behaves
+OSD does the actual work
+
+Bonus: Who talks to whom?
+Client → MON (map)
+Client → OSD (IO)
+MGR ← OSDs (metrics)
+MON ↔ MON (quorum)
+OSD ↔ OSD (replication)
+
